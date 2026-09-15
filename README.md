@@ -4,6 +4,10 @@
 
 已完成4轮迭代；最终独立评审 **8.8/10**，全部必需项通过。见 [最终评审](docs/CRITIC-4.md) 与 [验收记录](docs/VALIDATION.md)。
 
+## 在线访问
+
+https://flanker.github.io/coral-sea/ 。推送到 `main` 后由 GitHub Actions 自动构建并部署到 GitHub Pages（见 `.github/workflows/deploy.yml`）。
+
 ## 本地运行
 
 需要 Node.js 22。首次运行 `npm install`，然后 `npm run dev -- --port 5173`，访问 http://127.0.0.1:5173 。
@@ -25,9 +29,9 @@
 
 ## 建议体验路径
 
-1. 打开[5月7日10:30，美军视角](http://127.0.0.1:5173/?time=1942-05-07T00%3A30%3A00Z&view=us)，在同一时刻切换日军和上帝视角，比较双方各自误认的目标。
-2. 打开[5月7日10:59](http://127.0.0.1:5173/?time=1942-05-07T00%3A59%3A00Z&view=us)，勾选引导回放并播放，观察11:00的报告纠正；继续到11:23，出击方向随新报告调整。
-3. 打开[5月8日12:00，列克星敦号损管](http://127.0.0.1:5173/?time=1942-05-08T02%3A00%3A00Z&view=god&event=08-explosion)，切换美军视角。舰上已发生的爆炸，要等失控通知到达指挥部后才进入该视角。
+1. 打开[5月7日10:30，美军视角](https://flanker.github.io/coral-sea/?time=1942-05-07T00%3A30%3A00Z&view=us)，在同一时刻切换日军和上帝视角，比较双方各自误认的目标。
+2. 打开[5月7日10:59](https://flanker.github.io/coral-sea/?time=1942-05-07T00%3A59%3A00Z&view=us)，勾选引导回放并播放，观察11:00的报告纠正；继续到11:23，出击方向随新报告调整。
+3. 打开[5月8日12:00，列克星敦号损管](https://flanker.github.io/coral-sea/?time=1942-05-08T02%3A00%3A00Z&view=god&event=08-explosion)，切换美军视角。舰上已发生的爆炸，要等失控通知到达指挥部后才进入该视角。
 
 ## 数据与维护
 
