@@ -1,0 +1,19 @@
+import assert from 'node:assert/strict';
+import {events}from'../src/data/events';
+import {sources}from'../src/data/sources';
+import {units}from'../src/data/units';
+import {contacts}from'../src/data/contacts';
+import {t}from'../src/model';
+const ids=new Set(events.map(e=>e.id)),unitIds=new Set(units.map(u=>u.id));
+assert.equal(ids.size,events.length,'重复事件 ID');
+for(const e of events){assert.ok(Number.isFinite(t(e.at)),e.id+' 非法日期');assert.ok(e.location.every(Number.isFinite),e.id+' 非法坐标');assert.ok(e.citations.length,e.id+' 缺少来源');for(const c of e.citations){assert.ok(sources[c.source],e.id+' 来源不存在');assert.ok(c.locator,e.id+' 来源缺少定位');}for(const id of e.units)assert.ok(unitIds.has(id),e.id+' 未知部队 '+id);for(const r of e.relation??[])assert.ok(ids.has(r.id),e.id+' 无效因果引用');if(e.end)assert.ok(t(e.end)>=t(e.at),e.id+' 结束早于开始');for(const [view,accounts]of Object.entries(e.accounts)){for(const a of accounts){assert.ok(Number.isFinite(t(a.availableAt)),e.id+' 无效接收时刻');for(const id of a.units){assert.ok(units.some(u=>u.id===id&&u.side===view),e.id+' 账户引用敌方单位');}assert.ok(a.title&&a.body&&a.basis,e.id+' 账户缺少必要信息');}}}
+for(const c of contacts){assert.ok(ids.has(c.eventId),c.id+' 接触无事件');assert.ok(t(c.receivedAt)>=t(c.observedAt),c.id+' 先收后看');if(c.supersedes)assert.ok(contacts.some(x=>x.id===c.supersedes),c.id+' 修正无目标');}
+const point=(p:number[],id:string)=>assert.ok(p.length===2&&p.every(Number.isFinite)&&Math.abs(p[0])<=180&&Math.abs(p[1])<=90,id+' 坐标越界');
+for(const e of events){point(e.location,e.id);for(const account of Object.values(e.accounts)){for(let i=0;i<account.length;i++){const a=account[i];assert.ok(a.precision,e.id+' 账户未注明精度');if(a.precision==='record')assert.ok(a.rawTime,e.id+' 精确账户缺少源时标');if(a.location)point(a.location,e.id);if(i)assert.ok(t(a.availableAt)>=t(account[i-1].availableAt),e.id+' 账户版本未排序');if(e.precision==='record'&&a.precision!=='day')assert.ok(t(a.availableAt)>=t(e.at),e.id+' 消息早于实际发生');}}}
+for(const u of units){for(const f of u.formations??[])assert.ok(Number.isFinite(t(f.at))&&f.composition&&f.task,u.id+' 编成变更无效');for(const list of [u.points,u.changes]){for(let i=0;i<list.length;i++){const p=list[i];assert.ok(Number.isFinite(t(p.at)),u.id+' 状态时间无效');if(i)assert.ok(t(p.at)>=t(list[i-1].at),u.id+' 状态或位置未排序');if(p.knownAt)assert.ok(t(p.knownAt)>=t(p.at),u.id+' 获知早于发生');}}for(const p of u.points){point(p.point,u.id);assert.ok(sources[p.source],u.id+' 位置缺少来源');}}
+for(const c of contacts){point(c.location,c.id);const visited=new Set<string>();let p= c;while(p.supersedes){assert.ok(!visited.has(p.id),c.id+' 修正关系形成循环');visited.add(p.id);const prev=contacts.find(x=>x.id===p.supersedes)!;assert.equal(prev.side,p.side,c.id+' 跨阵营修正');assert.ok(t(prev.receivedAt)<=t(p.receivedAt),c.id+' 修正早于原报');p=prev;}}
+const required=['04-launch1','04-launch2','04-launch3','05-meet','06-order','06-oil','07-us-error','07-jp-error','07-oil-messages','07-hold-strike','07-no-night-attack','07-monaghan','07-convoy-turn','08-contact','08-shokaku1','08-us-hit','08-explosion','08-abandon','a-york-repair','a-midway','a-guadalcanal','08-jp-sigint','08-extra-carrier','08-assess-options','08-retire-decision','08-convoy-intel'];
+for(const id of required)assert.ok(ids.has(id),'缺少核心行为 '+id);
+for(const e of events)if(e.route){point(e.route.from,e.id+' 航空起点');point(e.route.to,e.id+' 航空目标');for(const revision of e.route.revisions??[]){assert.ok(ids.has(revision.eventId),e.id+' 目标修订无报告');const report=events.find(x=>x.id===revision.eventId)!;assert.ok(t(report.at)>=t(e.at),e.id+' 后报早于出击');assert.ok(revision.label,e.id+' 方向未注明依据');}}
+for(const day of [4,5,6,7,8]){const count=events.filter(e=>e.rawTime.startsWith(`1942-05-0${day}`)).length;assert.ok(count>=5,'核心日期缺少内容');console.log(`5月${day}日：${count}条`);}
+console.log(`${events.length} 条事件、${contacts.length} 条接触、${units.length} 支部队；引用与时间结构检查通过。`);
